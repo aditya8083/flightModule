@@ -1,8 +1,9 @@
 package com.coviam.dto;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class FlightInfoDTO {
+public class FlightInfoDTO implements Serializable{
 
     private String flightId;
     private String origin;

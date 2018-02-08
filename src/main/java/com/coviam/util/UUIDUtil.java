@@ -6,9 +6,9 @@ import java.util.Random;
 import java.util.UUID;
 
 @Component
-public class RandomGenerator {
+public class UUIDUtil {
 
-    public String generateRandomString() {
+    public String getUniqueId() {
         return UUID.randomUUID().toString();
     }
 }

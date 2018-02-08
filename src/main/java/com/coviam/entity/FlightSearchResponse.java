@@ -3,11 +3,12 @@ package com.coviam.entity;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
 @Table(name = FlightSearchResponse.TABLE_NAME)
-public class FlightSearchResponse {
+public class FlightSearchResponse  implements Serializable{
     public static final String TABLE_NAME = "FLIGHT_SEARCH_RESPONSE";
     private static final String ID_COLUMN = "ID";
 

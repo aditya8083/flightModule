@@ -1,18 +1,14 @@
 package com.coviam.cache;
 
 import com.aerospike.client.*;
-import com.aerospike.client.policy.ScanPolicy;
 import com.aerospike.client.policy.WritePolicy;
-import com.coviam.util.IOCompressUtil;
+import com.coviam.dto.BaseResponseDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Map;
 
 @Component
 @DependsOn(value = "aeroSpikeConfig")
@@ -50,7 +46,7 @@ public class CachingWrapper {
     }
 
 
-    public void writeWithoutCompression(String setName, String keyName, String colName, String colValue) {
+    public void writeWithoutCompression(String setName, String keyName, String colName, BaseResponseDTO colValue) {
         try {
             String timeToliveValue = aeroSpikeConfParams.getSetTimeToLive().get(setName).toString();
             WritePolicy writePolicy = aeroSpikeConfig.getDefaultWritePolicy();
@@ -68,19 +64,19 @@ public class CachingWrapper {
         }
     }
 
-    public String readValue(String setName, String keyName, String colName) {
+    public BaseResponseDTO readValue(String setName, String keyName, String colName) {
         Record record = null;
-        String colValue = "";
+        BaseResponseDTO colValue = new BaseResponseDTO();
         try {
             Key key = new Key(AeroSpikeConfParams.getNameSpace(), setName, keyName);
             record = client.get(aeroSpikeConfig.clientPolicy.readPolicyDefault, key);
             if (record != null && record.bins.size() != 0) {
-                colValue = (String) record.getValue(colName);
+                colValue = (BaseResponseDTO) record.getValue(colName);
                 System.out.println("----------------------Response coming from cache----------------------------");
             }
             return colValue;
         } catch (Exception exception) {
-            //   log.error("Error in getting value for set {} from cache : {}", setName, exception);
+            //log.error("Error in getting value for set {} from cache : {}", setName, exception);
         }
         return colValue;
     }

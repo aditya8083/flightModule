@@ -1,8 +1,10 @@
 package com.coviam.services.Impl;
 
 import com.coviam.cache.CachingWrapper;
+import com.coviam.dto.BaseResponseDTO;
 import com.coviam.dto.FlightSearchRequestDTO;
 import com.coviam.dto.FlightSearchResponseDTO;
+import com.coviam.dto.FlightSearchResultDTO;
 import com.coviam.entity.FlightInfo;
 import com.coviam.entity.FlightSearchResponse;
 import com.coviam.repository.FlightInfoRepository;
@@ -10,22 +12,21 @@ import com.coviam.repository.FlightSearchRepository;
 import com.coviam.services.FlightSearchService;
 import com.coviam.util.*;
 import org.apache.commons.lang3.StringUtils;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.logging.log4j.Logger;
+
 
 @Service
-public class FlightSearchServiceImpl implements FlightSearchService {
+public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultDTO> implements FlightSearchService{
 
     @Autowired
     CachingWrapper cachingWrapper;
     @Autowired
-    RandomGenerator randomGenerator;
+    UUIDUtil UUIDUtil;
     @Autowired
     FlightConstants flightConstants;
     @Autowired
@@ -35,7 +36,7 @@ public class FlightSearchServiceImpl implements FlightSearchService {
     @Autowired
     FlightInfoRepository flightInfoRepository;
     @Autowired
-    CommonUtil commonUtil;
+    Logger log;
 
 
     @Override
@@ -43,39 +44,33 @@ public class FlightSearchServiceImpl implements FlightSearchService {
         return flightInfoRepository.save(flightInfo);
     }
 
-    public String getAllFlights(FlightSearchRequestDTO flightSearchRequestDTO) {
-        System.out.println(flightSearchRequestDTO.toString());
+    public BaseResponseDTO getAllFlights(FlightSearchRequestDTO flightSearchRequestDTO, String interactionId) {
+        log.debug(flightSearchRequestDTO.toString());
         if (flightSearchResponsePresentInCache(flightSearchRequestDTO)) {
             return cachingWrapper.readValue(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), flightConstants.FLIGHT_SEARCH_COL);
         }
-        JSONObject flightSearchRespObj = new JSONObject();
-        JSONArray flightResArr = new JSONArray();
-        List<FlightSearchResponseDTO> oneWayFlightSearchResponse = new ArrayList<FlightSearchResponseDTO>();
-        String response;
+        FlightSearchResultDTO flightSearchResultDTO = new FlightSearchResultDTO();
+        BaseResponseDTO response;
         try {
-            oneWayFlightSearchResponse = getAllOneWayFlights(flightSearchRequestDTO);
-            flightResArr.put(0, oneWayFlightSearchResponse);
-
+            flightSearchResultDTO.setOneWay(getAllOneWayFlights(flightSearchRequestDTO));
             if (flightSearchRequestDTO.getFlightType().equalsIgnoreCase("ROUNDTRIP")) {
-                List<FlightSearchResponseDTO> returnWayFlightSearchResponse = new ArrayList<FlightSearchResponseDTO>();
-                returnWayFlightSearchResponse = getAllReturnTripFlights(flightSearchRequestDTO);
-                flightResArr.put(1, returnWayFlightSearchResponse);
+                flightSearchResultDTO.setRoundWay(getAllReturnTripFlights(flightSearchRequestDTO));
             }
-            flightSearchRespObj.put("search_results", flightResArr);
-            if (flightSearchRespObj.getJSONArray("search_results").getJSONArray(0).length() != 0) {
-                System.out.println("Flight Search response got successfully");
-                response = commonUtil.successResponse(flightSearchRespObj, flightConstants.FLIGHT_SEARCH, randomGenerator.generateRandomString());
+            if (flightSearchResultDTO.getOneWay().size() > 0 && (
+                    flightSearchRequestDTO.getFlightType().equalsIgnoreCase("ROUNDTRIP")) && flightSearchResultDTO.getRoundWay().size() > 0) {
+                log.debug("Flight Search response got successfully");
+                response = new BaseResponseDTO<FlightSearchResultDTO>(flightConstants.SUCCESS_CODE, flightConstants.SUCCESS,interactionId, flightConstants.FLIGHT_SEARCH, flightSearchResultDTO);
                 saveSearchResponseInCache(flightSearchRequestDTO, response);
+                log.info(response);
             } else {
-                response = commonUtil.errorResponse(flightConstants.FAILURE_CODE, flightConstants.NO_FLIGHT_FOUND_MSG, randomGenerator.generateRandomString(), flightConstants.FLIGHT_SEARCH);
-                System.out.println("Error in Getting Flight Search results");
+                response = new BaseResponseDTO<FlightSearchResultDTO>(flightConstants.FAILURE_CODE, flightConstants.NO_FLIGHT_FOUND_MSG, interactionId, flightConstants.FLIGHT_SEARCH, flightSearchResultDTO);
+                log.debug("Error in Getting Flight Search results");
             }
         } catch (Exception e) {
-            System.out.println("Exception in Getting Flight Search Details");
-            return escapeCharacter.escapeCharacter(new JSONObject(new ResponseDeco(flightConstants.EXCEPTION_CODE, flightConstants.FAILURE, randomGenerator.generateRandomString(),
-                    flightConstants.FLIGHT_SEARCH, new JSONObject())).toString());
+            log.debug("Exception in Getting Flight Search Details");
+            return new BaseResponseDTO<FlightSearchResultDTO>(flightConstants.EXCEPTION_CODE, flightConstants.FAILURE, interactionId, flightConstants.FLIGHT_SEARCH, flightSearchResultDTO);
         }
-        return escapeCharacter.escapeCharacter(response);
+        return response;
     }
 
     @Override
@@ -93,13 +88,13 @@ public class FlightSearchServiceImpl implements FlightSearchService {
     }
 
 
-    private void saveSearchResponseInCache(FlightSearchRequestDTO flightSearchRequestDTO, String response) {
-        cachingWrapper.writeWithoutCompression(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), flightConstants.FLIGHT_SEARCH_COL, escapeCharacter.escapeCharacter(response));
+    private void saveSearchResponseInCache(FlightSearchRequestDTO flightSearchRequestDTO, BaseResponseDTO response) {
+        cachingWrapper.writeWithoutCompression(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), flightConstants.FLIGHT_SEARCH_COL, response);
     }
 
 
     public boolean flightSearchResponsePresentInCache(FlightSearchRequestDTO flightSearchRequestDTO) {
-        if (!StringUtils.isBlank(cachingWrapper.readValue(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), flightConstants.FLIGHT_SEARCH_COL))) {
+        if (StringUtils.isBlank((cachingWrapper.readValue(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), flightConstants.FLIGHT_SEARCH_COL)).toString())) {
             return true;
         }
         return false;
@@ -109,7 +104,7 @@ public class FlightSearchServiceImpl implements FlightSearchService {
         List<FlightInfo> returnWayFlightInfoResponses = flightInfoRepository.flightSearch(flightSearchRequestDTO.getDestination(),
                 flightSearchRequestDTO.getOrigin(),
                 flightSearchRequestDTO.getDestinationArrivalDate());
-        System.out.println("No of Flights in return Trip : " + returnWayFlightInfoResponses.size());
+        log.debug("No of Flights in return Trip : " + returnWayFlightInfoResponses.size());
         List<FlightSearchResponse> returnWayFlightSearchResponses = getFlightSearchResp(returnWayFlightInfoResponses);
         return getFlightSearchResponseDTOs(returnWayFlightSearchResponses);
     }
@@ -118,7 +113,7 @@ public class FlightSearchServiceImpl implements FlightSearchService {
         List<FlightInfo> oneWayResponseList = flightInfoRepository.flightSearch(flightSearchRequestDTO.getOrigin(),
                 flightSearchRequestDTO.getDestination(),
                 flightSearchRequestDTO.getOriginDepartDate());
-        System.out.println("No of Flights in OneWay : " + oneWayResponseList.size());
+        log.debug("No of Flights in OneWay : " + oneWayResponseList.size());
         List<FlightSearchResponse> oneWayFlightSearchResponses = getFlightSearchResp(oneWayResponseList);
         return getFlightSearchResponseDTOs(oneWayFlightSearchResponses);
     }
@@ -142,11 +137,5 @@ public class FlightSearchServiceImpl implements FlightSearchService {
         }
         return flightSearchResponseDTOS;
     }
-
-    public int getPaxCount(FlightSearchRequestDTO flightSearchRequest) {
-        return flightSearchRequest.getAdults() + flightSearchRequest.getChildren() + flightSearchRequest.getInfants();
-
-    }
-
 
 }

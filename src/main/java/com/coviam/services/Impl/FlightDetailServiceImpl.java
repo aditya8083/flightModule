@@ -1,70 +1,65 @@
 package com.coviam.services.Impl;
 
 
-import com.coviam.dto.FlightDetailRequestDTO;
-import com.coviam.dto.FlightDetailResponseDTO;
+import com.coviam.dto.*;
 import com.coviam.entity.FlightInfo;
 import com.coviam.entity.FlightSearchCriteria;
 import com.coviam.repository.FlightCriteriaRepository;
-import com.coviam.repository.FlightDetailRepository;
 import com.coviam.repository.FlightInfoRepository;
 import com.coviam.services.FlightDetailService;
 import com.coviam.util.*;
-import com.google.gson.Gson;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
-public class FlightDetailServiceImpl implements FlightDetailService{
+public class FlightDetailServiceImpl extends  BaseResponseDTO<FlightDetailResultDTO>implements FlightDetailService{
 
     @Autowired
-    RandomGenerator randomGenerator;
+    UUIDUtil UUIDUtil;
     @Autowired
     FlightConstants flightConstants;
     @Autowired
     EscapeCharacter escapeCharacter;
     @Autowired
-    FlightDetailRepository flightDetailRepository;
-    @Autowired
     FlightCriteriaRepository flightCriteriaRepository;
     @Autowired
     FlightInfoRepository flightInfoRepository;
     @Autowired
-    CommonUtil commonUtil;
+    Logger log;
 
 
 
-    public String getFlightDetail(FlightDetailRequestDTO flightDetailRequestDTO ) {
+
+    public BaseResponseDTO getFlightDetail(FlightDetailRequestDTO flightDetailRequestDTO , String interactionId) {
         String flightPricingIds = flightDetailRequestDTO.getFlightId();
-        JSONObject flightPricingRespObj = new JSONObject();
-        String response = "";
+        FlightDetailResultDTO flightDetailResultDTO = new FlightDetailResultDTO();
+        BaseResponseDTO response;
         try {
-            String superPnr = randomGenerator.generateRandomString();
+            String superPnr = UUIDUtil.getUniqueId();
             saveFlightSearchCriteria(flightDetailRequestDTO, superPnr);
-            JSONArray flightResArr = getFlightItineraryDetails(flightPricingIds);
-            System.out.println(flightResArr);
 
-            flightPricingRespObj.put("details_result", flightResArr);
-            flightPricingRespObj.put("superPnr", superPnr);
-            flightPricingRespObj.put("totalPrice", getTotalPrice(flightResArr, flightDetailRequestDTO));
+            flightDetailResultDTO.setDetailResult(getFlightItineraryDetails(flightPricingIds));
+            flightDetailResultDTO.setSuperPnr(superPnr);
+            flightDetailResultDTO.setTotalPrice(getTotalPrice(flightDetailResultDTO, flightDetailRequestDTO));
 
-            if (flightPricingRespObj.getJSONArray("details_result").length() != 0 && (flightPricingRespObj.getInt("totalPrice")) > 0) {
-                System.out.println("Flight Detail response got successfully");
-                response =  commonUtil.successResponse(flightPricingRespObj,flightConstants.FLIGHT_DETAIL, randomGenerator.generateRandomString() );
+            if (flightDetailResultDTO.getDetailResult().size() > 0) {
+                log.debug("Flight Detail response got successfully");
+                response =  new BaseResponseDTO<FlightDetailResultDTO>(flightConstants.SUCCESS_CODE, flightConstants.SUCCESS, interactionId, flightConstants.FLIGHT_DETAIL, flightDetailResultDTO);
             } else {
-                response =  commonUtil.errorResponse(flightConstants.FAILURE_CODE, flightConstants.FAILURE, randomGenerator.generateRandomString(), flightConstants.FLIGHT_DETAIL);
-                System.out.println("Error in Getting Flight Details");
+                response =  new BaseResponseDTO<FlightDetailResultDTO>(flightConstants.FAILURE_CODE, flightConstants.FAILURE, interactionId, flightConstants.FLIGHT_DETAIL, flightDetailResultDTO);
+                log.debug("Error in Getting Flight Details");
             }
         } catch (Exception e) {
-            System.out.println("Exception in Getting Flight Details");
-            return escapeCharacter.escapeCharacter(new JSONObject(new ResponseDeco(flightConstants.EXCEPTION_CODE, flightConstants.FAILURE, randomGenerator.generateRandomString(),
-                    flightConstants.FLIGHT_DETAIL, new JSONObject())).toString());
+            log.debug("Exception in Getting Flight Details");
+            return new BaseResponseDTO<FlightDetailResultDTO>(flightConstants.EXCEPTION_CODE, flightConstants.FAILURE, interactionId, flightConstants.FLIGHT_DETAIL, flightDetailResultDTO);
         }
-        return escapeCharacter.escapeCharacter(response);
+        return response;
     }
 
     private void saveFlightSearchCriteria(FlightDetailRequestDTO flightDetailRequestDTO, String superPnr) {
@@ -73,31 +68,31 @@ public class FlightDetailServiceImpl implements FlightDetailService{
         flightCriteriaRepository.save(flightSearchCriteria);
     }
 
-    private int getTotalPrice(JSONArray flightPriceResArr, FlightDetailRequestDTO flightDetailRequestDTO) {
+    private int getTotalPrice(FlightDetailResultDTO flightDetailResultDTO, FlightDetailRequestDTO flightDetailRequestDTO) {
         int totalAmount = 0;
         int adultCount = flightDetailRequestDTO.getAdult();
         int childCount = flightDetailRequestDTO.getChild();
         int infantCount = flightDetailRequestDTO.getInfant();
         try {
-            if (flightPriceResArr.length() > 0) {
-                JSONObject onGoingFlightObj = flightPriceResArr.getJSONObject(0);
-                totalAmount = getTotalAmount(onGoingFlightObj, adultCount, childCount,infantCount);
-                if (flightPriceResArr.length() > 1) {
-                    JSONObject returnFlightObj = flightPriceResArr.getJSONObject(1);
-                    totalAmount += getTotalAmount(returnFlightObj, adultCount, childCount, infantCount);
+            if (flightDetailResultDTO.getDetailResult().size() > 0) {
+                FlightDetailResponseDTO onGoingSectorDetails= flightDetailResultDTO.getDetailResult().get(0);
+                totalAmount = getTotalAmount(onGoingSectorDetails, adultCount, childCount,infantCount);
+                if (flightDetailResultDTO.getDetailResult().size() > 1) {
+                    FlightDetailResponseDTO returnSectorDetails= flightDetailResultDTO.getDetailResult().get(0);
+                    totalAmount += getTotalAmount(returnSectorDetails, adultCount, childCount, infantCount);
                 }
             }
         } catch (Exception e) {
-            System.out.println("Getting Exception in calculating the total Amount");
+            log.debug("Getting Exception in calculating the total Amount");
             return 0;
         }
         return totalAmount;
     }
 
-    private int getTotalAmount(JSONObject flightResponseObj, int adultCount, int childCount, int infantCount) {
-        return (int) ((adultCount > 0 ? adultCount * Double.parseDouble(flightResponseObj.getString("pricePerAdult")) : 0.0)
-                + (childCount > 0 ? childCount * Double.parseDouble(flightResponseObj.getString("pricePerChild")) : 0.0)
-                + (infantCount > 0 ? infantCount * Double.parseDouble(flightResponseObj.getString("pricePerInfant")) : 0.0));
+    private int getTotalAmount(FlightDetailResponseDTO sectorDetails, int adultCount, int childCount, int infantCount) {
+        return (int) ((adultCount > 0 ? adultCount * Double.parseDouble(sectorDetails.getPricePerAdult()) : 0.0)
+                + (childCount > 0 ? childCount * Double.parseDouble(sectorDetails.getPricePerChild()) : 0.0)
+                + (infantCount > 0 ? infantCount * Double.parseDouble(sectorDetails.getPricePerInfant()) : 0.0));
 
     }
 
@@ -106,27 +101,6 @@ public class FlightDetailServiceImpl implements FlightDetailService{
         flightDetailRequestDTO.setFlightId((request.getParameter("flightId")));
         return flightDetailRequestDTO;
 
-    }
-
-    public String getFlightItinerary(String superPnr) {
-        String response;
-        JSONObject flightItineraryRespObj = new JSONObject();
-        try {
-            String itineraryFlightId = getFlightIDsForItinerary(superPnr);
-            JSONArray flightItineraryDetails = getFlightItineraryDetails(itineraryFlightId);
-            flightItineraryRespObj.put("itineraryDetails", flightItineraryDetails);
-            if (flightItineraryRespObj.getJSONArray("itineraryDetails").length() != 0) {
-                System.out.println("Flight Itinerary Detail response got successfully");
-                response = commonUtil.successResponse(flightItineraryRespObj,flightConstants.FLIGHT_ITINERARY_RESPONSE, randomGenerator.generateRandomString());
-            } else {
-                response = commonUtil.errorResponse(flightConstants.FAILURE_CODE, flightConstants.FAILURE, randomGenerator.generateRandomString(), flightConstants.FLIGHT_ITINERARY_RESPONSE);
-            }
-        } catch (Exception e) {
-            System.out.println("Getting Exception in getting the flight Itinerary Details from Database");
-            return escapeCharacter.escapeCharacter(new JSONObject(new ResponseDeco(flightConstants.EXCEPTION_CODE, flightConstants.FAILURE, randomGenerator.generateRandomString(),
-                    flightConstants.FLIGHT_ITINERARY_RESPONSE, new JSONObject())).toString());
-        }
-        return escapeCharacter.escapeCharacter(response);
     }
 
     @Override
@@ -144,29 +118,24 @@ public class FlightDetailServiceImpl implements FlightDetailService{
         return  flightDetailRequestDTO;
     }
 
-    private JSONArray getFlightItineraryDetails(String itineraryFlightId) {
-        Gson gsonObj = new Gson();
-        JSONArray flightItineraryDetails = new JSONArray();
+    private List<FlightDetailResponseDTO> getFlightItineraryDetails(String itineraryFlightId) {
+        List<FlightDetailResponseDTO> flightDetailResponseDTOList = new ArrayList<>();
         String flightPricingIds[] = itineraryFlightId.split(",");
         String onGoingTripFlightId = flightPricingIds[0];
         FlightInfo OnGoingFlightInfoRes = flightInfoRepository.getFlightInfo(onGoingTripFlightId);
         FlightDetailResponseDTO OnGoingFlightDetailDTORes = new FlightDetailResponseDTO();
         BeanUtils.copyProperties(OnGoingFlightInfoRes, OnGoingFlightDetailDTORes);
-        flightItineraryDetails.put(new JSONObject(gsonObj.toJson(OnGoingFlightDetailDTORes)));
+        flightDetailResponseDTOList.add(OnGoingFlightDetailDTORes);
 
         if (flightPricingIds.length > 1) {
             String returnTripFlightId = flightPricingIds[1];
             FlightInfo returnFlightInfoRes = flightInfoRepository.getFlightInfo(returnTripFlightId);
             FlightDetailResponseDTO returnFlightDetailDTORes = new FlightDetailResponseDTO();
             BeanUtils.copyProperties(returnFlightInfoRes, returnFlightDetailDTORes);
-            flightItineraryDetails.put(new JSONObject(gsonObj.toJson(returnFlightDetailDTORes)));
+            flightDetailResponseDTOList.add(returnFlightDetailDTORes);
         }
-        return flightItineraryDetails;
+        return flightDetailResponseDTOList;
     }
 
-    public String getFlightIDsForItinerary(String superPnr) {
-        FlightSearchCriteria flightSearchCriteria = flightCriteriaRepository.getFlightIdBySuperPnr(superPnr);
-        return flightSearchCriteria.getFlightId();
-    }
 
 }

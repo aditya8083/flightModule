@@ -1,17 +1,19 @@
-package com.coviam.util;
+package com.coviam.dto;
 
 
-import org.json.JSONObject;
+import java.io.Serializable;
 
-public class ResponseDeco {
+public class BaseResponseDTO<T> implements Serializable{
     private int resCode;
     private String resMessage;
     private String interactionId;
     private String interactionType;
-    private JSONObject response;
+    private T response;
 
+    public BaseResponseDTO() {
+    }
 
-    public ResponseDeco(int resCode, String resMessage, String interactionId, String interactionType, JSONObject response) {
+    public BaseResponseDTO(int resCode, String resMessage, String interactionId, String interactionType, T response) {
         this.resCode = resCode;
         this.resMessage = resMessage;
         this.interactionId = interactionId;
@@ -51,17 +53,23 @@ public class ResponseDeco {
         this.interactionType = interactionType;
     }
 
-    public JSONObject getResponse() {
+    public T getResponse() {
         return response;
     }
 
-    public void setResponse(JSONObject response) {
+    public void setResponse(T response) {
         this.response = response;
     }
 
 
     @Override
     public String toString() {
-        return "ResponseDeco{" + "resCode=" + resCode + ", resMessage='" + resMessage + '\'' + ", interactionId='" + interactionId + '\'' + ", interactionType='" + interactionType + '\'' + ", response='" + response + '\'' + '}';
+        return "BaseResponseDTO{" +
+                "resCode=" + resCode +
+                ", resMessage='" + resMessage + '\'' +
+                ", interactionId='" + interactionId + '\'' +
+                ", interactionType='" + interactionType + '\'' +
+                ", response=" + response +
+                '}';
     }
 }

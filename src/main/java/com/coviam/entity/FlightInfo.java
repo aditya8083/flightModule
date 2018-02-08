@@ -4,11 +4,12 @@ import com.coviam.dto.FlightInfoDTO;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
 @Table(name = FlightInfo.TABLE_NAME)
-public class FlightInfo {
+public class FlightInfo implements Serializable{
     public static final String TABLE_NAME = "FLIGHT_INFO";
     private static final String ID_COLUMN = "ID";
 
