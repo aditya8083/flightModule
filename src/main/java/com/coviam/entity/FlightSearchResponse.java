@@ -25,9 +25,17 @@ public class FlightSearchResponse  implements Serializable{
     private String originDepartTime;
     private String destinationArrivalDate;
     private String destinationArrivalTime;
+    private String flightCode;
     private String flightName;
     private String flightNumber;
     private String pricePerAdult;
+    private boolean isHandBaggageFlight;
+    private String baggageWeight;
+    private boolean transitVisaRequired;
+
+    public static String getTableName() {
+        return TABLE_NAME;
+    }
 
     public String getId() {
         return id;
@@ -35,14 +43,6 @@ public class FlightSearchResponse  implements Serializable{
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public static String getTableName() {
-        return TABLE_NAME;
-    }
-
-    public static String getIdColumn() {
-        return ID_COLUMN;
     }
 
     public String getFlightId() {
@@ -109,6 +109,14 @@ public class FlightSearchResponse  implements Serializable{
         this.destinationArrivalTime = destinationArrivalTime;
     }
 
+    public String getFlightCode() {
+        return flightCode;
+    }
+
+    public void setFlightCode(String flightCode) {
+        this.flightCode = flightCode;
+    }
+
     public String getFlightName() {
         return flightName;
     }
@@ -125,12 +133,36 @@ public class FlightSearchResponse  implements Serializable{
         this.flightNumber = flightNumber;
     }
 
-    public String getpricePerAdult() {
+    public String getPricePerAdult() {
         return pricePerAdult;
     }
 
-    public void setpricePerAdult(String pricePerAdult) {
+    public void setPricePerAdult(String pricePerAdult) {
         this.pricePerAdult = pricePerAdult;
+    }
+
+    public boolean isHandBaggageFlight() {
+        return isHandBaggageFlight;
+    }
+
+    public void setHandBaggageFlight(boolean handBaggageFlight) {
+        isHandBaggageFlight = handBaggageFlight;
+    }
+
+    public String getBaggageWeight() {
+        return baggageWeight;
+    }
+
+    public void setBaggageWeight(String baggageWeight) {
+        this.baggageWeight = baggageWeight;
+    }
+
+    public boolean isTransitVisaRequired() {
+        return transitVisaRequired;
+    }
+
+    public void setTransitVisaRequired(boolean transitVisaRequired) {
+        this.transitVisaRequired = transitVisaRequired;
     }
 
     @Override
@@ -139,6 +171,9 @@ public class FlightSearchResponse  implements Serializable{
         if (!(o instanceof FlightSearchResponse)) return false;
         FlightSearchResponse that = (FlightSearchResponse) o;
         return isRefundable == that.isRefundable &&
+                isHandBaggageFlight == that.isHandBaggageFlight &&
+                transitVisaRequired == that.transitVisaRequired &&
+                Objects.equals(id, that.id) &&
                 Objects.equals(flightId, that.flightId) &&
                 Objects.equals(origin, that.origin) &&
                 Objects.equals(destination, that.destination) &&
@@ -146,21 +181,25 @@ public class FlightSearchResponse  implements Serializable{
                 Objects.equals(originDepartTime, that.originDepartTime) &&
                 Objects.equals(destinationArrivalDate, that.destinationArrivalDate) &&
                 Objects.equals(destinationArrivalTime, that.destinationArrivalTime) &&
+                Objects.equals(flightCode, that.flightCode) &&
                 Objects.equals(flightName, that.flightName) &&
                 Objects.equals(flightNumber, that.flightNumber) &&
-                Objects.equals(pricePerAdult, that.pricePerAdult);
+                Objects.equals(pricePerAdult, that.pricePerAdult) &&
+                Objects.equals(baggageWeight, that.baggageWeight);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(flightId, origin, destination, isRefundable, originDepartDate, originDepartTime, destinationArrivalDate, destinationArrivalTime, flightName, flightNumber, pricePerAdult);
+        return Objects.hash(id, flightId, origin, destination, isRefundable, originDepartDate, originDepartTime, destinationArrivalDate, destinationArrivalTime, flightCode, flightName, flightNumber, pricePerAdult, isHandBaggageFlight, baggageWeight, transitVisaRequired);
     }
+
 
     @Override
     public String toString() {
         return "FlightSearchResponse{" +
-                "flightId='" + flightId + '\'' +
+                "id='" + id + '\'' +
+                ", flightId='" + flightId + '\'' +
                 ", origin='" + origin + '\'' +
                 ", destination='" + destination + '\'' +
                 ", isRefundable=" + isRefundable +
@@ -168,9 +207,13 @@ public class FlightSearchResponse  implements Serializable{
                 ", originDepartTime='" + originDepartTime + '\'' +
                 ", destinationArrivalDate='" + destinationArrivalDate + '\'' +
                 ", destinationArrivalTime='" + destinationArrivalTime + '\'' +
+                ", flightCode='" + flightCode + '\'' +
                 ", flightName='" + flightName + '\'' +
                 ", flightNumber='" + flightNumber + '\'' +
                 ", pricePerAdult='" + pricePerAdult + '\'' +
+                ", isHandBaggageFlight=" + isHandBaggageFlight +
+                ", baggageWeight='" + baggageWeight + '\'' +
+                ", transitVisaRequired=" + transitVisaRequired +
                 '}';
     }
 }

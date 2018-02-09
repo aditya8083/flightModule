@@ -44,7 +44,7 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
         return flightInfoRepository.save(flightInfo);
     }
 
-    public BaseResponseDTO getAllFlights(FlightSearchRequestDTO flightSearchRequestDTO, String interactionId) {
+    public BaseResponseDTO  getAllFlights(FlightSearchRequestDTO flightSearchRequestDTO, String interactionId) {
         log.debug(flightSearchRequestDTO.toString());
         if (flightSearchResponsePresentInCache(flightSearchRequestDTO)) {
             return cachingWrapper.readValue(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), flightConstants.FLIGHT_SEARCH_COL);
@@ -56,12 +56,14 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
             if (flightSearchRequestDTO.getFlightType().equalsIgnoreCase("ROUNDTRIP")) {
                 flightSearchResultDTO.setRoundWay(getAllReturnTripFlights(flightSearchRequestDTO));
             }
-            if (flightSearchResultDTO.getOneWay().size() > 0 && (
-                    flightSearchRequestDTO.getFlightType().equalsIgnoreCase("ROUNDTRIP")) && flightSearchResultDTO.getRoundWay().size() > 0) {
+            if (flightSearchRequestDTO.getFlightType().equalsIgnoreCase("ONEWAY") && flightSearchResultDTO.getOneWay().size() > 0){
                 log.debug("Flight Search response got successfully");
                 response = new BaseResponseDTO<FlightSearchResultDTO>(flightConstants.SUCCESS_CODE, flightConstants.SUCCESS,interactionId, flightConstants.FLIGHT_SEARCH, flightSearchResultDTO);
                 saveSearchResponseInCache(flightSearchRequestDTO, response);
-                log.info(response);
+            }else if(flightSearchRequestDTO.getFlightType().equalsIgnoreCase("ROUNDTRIP") && flightSearchResultDTO.getRoundWay().size() > 0 && flightSearchResultDTO.getOneWay().size() > 0) {
+                log.debug("Flight Search response got successfully");
+                response = new BaseResponseDTO<FlightSearchResultDTO>(flightConstants.SUCCESS_CODE, flightConstants.SUCCESS,interactionId, flightConstants.FLIGHT_SEARCH, flightSearchResultDTO);
+                saveSearchResponseInCache(flightSearchRequestDTO, response);
             } else {
                 response = new BaseResponseDTO<FlightSearchResultDTO>(flightConstants.FAILURE_CODE, flightConstants.NO_FLIGHT_FOUND_MSG, interactionId, flightConstants.FLIGHT_SEARCH, flightSearchResultDTO);
                 log.debug("Error in Getting Flight Search results");
@@ -70,6 +72,7 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
             log.debug("Exception in Getting Flight Search Details");
             return new BaseResponseDTO<FlightSearchResultDTO>(flightConstants.EXCEPTION_CODE, flightConstants.FAILURE, interactionId, flightConstants.FLIGHT_SEARCH, flightSearchResultDTO);
         }
+        log.info(response);
         return response;
     }
 
@@ -94,7 +97,8 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
 
 
     public boolean flightSearchResponsePresentInCache(FlightSearchRequestDTO flightSearchRequestDTO) {
-        if (StringUtils.isBlank((cachingWrapper.readValue(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), flightConstants.FLIGHT_SEARCH_COL)).toString())) {
+        FlightSearchResultDTO flightSearchResultDTO = (FlightSearchResultDTO)(cachingWrapper.readValue(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), flightConstants.FLIGHT_SEARCH_COL)).getResponse();
+        if (flightSearchResultDTO != null) {
             return true;
         }
         return false;

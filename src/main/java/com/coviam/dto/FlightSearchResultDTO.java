@@ -40,7 +40,6 @@ public class FlightSearchResultDTO implements Serializable{
         return Objects.hash(oneWay, roundWay);
     }
 
-
     @Override
     public String toString() {
         return "FlightSearchResultDTO{" +

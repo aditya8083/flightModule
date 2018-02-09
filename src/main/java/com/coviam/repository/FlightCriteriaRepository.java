@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FlightCriteriaRepository extends CrudRepository<FlightSearchCriteria,String>{
 
-    @Query("select fsc from FlightSearchCriteria fsc where fsc.superPnr = :superPnr")
+    @Query("select fsc from FlightSearchCriteria fsc where fsc.id = :superPnr")
     FlightSearchCriteria getFlightIdBySuperPnr(@Param("superPnr") String superPnr);
 
 }
