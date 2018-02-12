@@ -1,11 +1,7 @@
 package com.coviam.dto;
 
-
-import lombok.Builder;
-
 import java.io.Serializable;
 
-@Builder(toBuilder = true)
 public class BaseResponseDTO<T> implements Serializable{
     private int resCode;
     private String resMessage;

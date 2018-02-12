@@ -1,12 +1,9 @@
 package com.coviam.dto;
 
-import lombok.Builder;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
-@Builder(toBuilder = true)
 public class FlightSearchResultDTO implements Serializable{
     private List<List<FlightSearchResponseDTO>> flightResult;
 

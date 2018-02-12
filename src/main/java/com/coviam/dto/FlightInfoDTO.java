@@ -1,11 +1,9 @@
 package com.coviam.dto;
 
-import lombok.Builder;
 
 import java.io.Serializable;
 import java.util.Objects;
 
-@Builder(toBuilder = true)
 public class FlightInfoDTO implements Serializable{
     private String flightId;
     private String origin;

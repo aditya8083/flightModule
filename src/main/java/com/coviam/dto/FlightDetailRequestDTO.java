@@ -1,12 +1,10 @@
 package com.coviam.dto;
 
-import lombok.Builder;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.Objects;
 
-@Builder(toBuilder = true)
 public class FlightDetailRequestDTO implements Serializable{
     private String flightId;
     private String origin;
