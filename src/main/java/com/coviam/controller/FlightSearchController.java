@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 @RestController
+@CrossOrigin("*")
 @RequestMapping("/flight")
 public class FlightSearchController {
 
@@ -26,11 +27,11 @@ public class FlightSearchController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/search")
     public ResponseEntity<BaseResponseDTO> flightSearch(@RequestParam String origin, @RequestParam String destination,
-                                                        @RequestParam String originDepartDate, @RequestParam String destinationArrivalDate,
+                                                        @RequestParam String originDepartDate, @RequestParam String returnDate,
                                                         @RequestParam int adults, @RequestParam int infants, @RequestParam int children,
                                                         @RequestParam String flightType, HttpServletRequest request){
         log.debug("Getting all Flights");
-        FlightSearchRequestDTO flightSearchRequestDTO = flightSearchService.mapAllParamsToDTOObject(origin, destination, originDepartDate, destinationArrivalDate, adults, infants, children, flightType);
+        FlightSearchRequestDTO flightSearchRequestDTO = flightSearchService.mapAllParamsToDTOObject(origin, destination, originDepartDate, returnDate, adults, infants, children, flightType);
         log.debug(flightSearchRequestDTO);
         String interactionId = (String)request.getSession().getAttribute("interactionId");
         BaseResponseDTO baseResponseDTO = flightSearchService.getAllFlights(flightSearchRequestDTO, interactionId);

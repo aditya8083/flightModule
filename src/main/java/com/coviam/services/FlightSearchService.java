@@ -10,5 +10,5 @@ public interface FlightSearchService {
 
         public BaseResponseDTO getAllFlights(FlightSearchRequestDTO flightSearchRequestDTO, String interactionId) ;
 
-        FlightSearchRequestDTO mapAllParamsToDTOObject(String origin, String destination, String originDepartDate, String destinationArrivalDate, int adults, int infants, int children, String flightType);
+        FlightSearchRequestDTO mapAllParamsToDTOObject(String origin, String destination, String originDepartDate, String returnDate, int adults, int infants, int children, String flightType);
 }

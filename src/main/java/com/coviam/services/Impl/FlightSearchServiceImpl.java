@@ -11,7 +11,6 @@ import com.coviam.repository.FlightInfoRepository;
 import com.coviam.repository.FlightSearchRepository;
 import com.coviam.services.FlightSearchService;
 import com.coviam.util.*;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,16 +51,18 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
         FlightSearchResultDTO flightSearchResultDTO = new FlightSearchResultDTO();
         BaseResponseDTO response;
         try {
-            flightSearchResultDTO.setOneWay(getAllOneWayFlights(flightSearchRequestDTO));
+            List<List<FlightSearchResponseDTO>> FlightSearchResponseDTOs = new ArrayList<>();
+            FlightSearchResponseDTOs.add(getAllOneWayFlights(flightSearchRequestDTO));
             if (flightSearchRequestDTO.getFlightType().equalsIgnoreCase("ROUNDTRIP")) {
-                flightSearchResultDTO.setRoundWay(getAllReturnTripFlights(flightSearchRequestDTO));
+                FlightSearchResponseDTOs.add(getAllReturnTripFlights(flightSearchRequestDTO));
             }
-            if (flightSearchRequestDTO.getFlightType().equalsIgnoreCase("ONEWAY") && flightSearchResultDTO.getOneWay().size() > 0){
-                log.debug("Flight Search response got successfully");
-                response = new BaseResponseDTO<FlightSearchResultDTO>(flightConstants.SUCCESS_CODE, flightConstants.SUCCESS,interactionId, flightConstants.FLIGHT_SEARCH, flightSearchResultDTO);
+            flightSearchResultDTO.setFlightResult(FlightSearchResponseDTOs);
+            if (flightSearchRequestDTO.getFlightType().equalsIgnoreCase("ONEWAY") && flightSearchResultDTO.getFlightResult().get(0).size() > 0){
+                log.debug("One Way flight Search response got successfully");
+                response = new BaseResponseDTO<FlightSearchResultDTO>(flightConstants.SUCCESS_CODE, flightConstants.SUCCESS, interactionId, flightConstants.FLIGHT_SEARCH, flightSearchResultDTO);
                 saveSearchResponseInCache(flightSearchRequestDTO, response);
-            }else if(flightSearchRequestDTO.getFlightType().equalsIgnoreCase("ROUNDTRIP") && flightSearchResultDTO.getRoundWay().size() > 0 && flightSearchResultDTO.getOneWay().size() > 0) {
-                log.debug("Flight Search response got successfully");
+            }else if(flightSearchRequestDTO.getFlightType().equalsIgnoreCase("ROUNDTRIP") && flightSearchResultDTO.getFlightResult().get(1).size() > 0 && flightSearchResultDTO.getFlightResult().get(0).size()  > 0) {
+                log.debug("Round Trip flight Search response got successfully");
                 response = new BaseResponseDTO<FlightSearchResultDTO>(flightConstants.SUCCESS_CODE, flightConstants.SUCCESS,interactionId, flightConstants.FLIGHT_SEARCH, flightSearchResultDTO);
                 saveSearchResponseInCache(flightSearchRequestDTO, response);
             } else {
@@ -77,12 +78,12 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
     }
 
     @Override
-    public FlightSearchRequestDTO mapAllParamsToDTOObject(String origin, String destination, String originDepartDate, String destinationArrivalDate, int adults, int infants, int children, String flightType) {
+    public FlightSearchRequestDTO mapAllParamsToDTOObject(String origin, String destination, String originDepartDate, String returnDate, int adults, int infants, int children, String flightType) {
         FlightSearchRequestDTO flightSearchRequestDTO = new FlightSearchRequestDTO();
         flightSearchRequestDTO.setOrigin(origin);
         flightSearchRequestDTO.setDestination(destination);
         flightSearchRequestDTO.setOriginDepartDate(originDepartDate);
-        flightSearchRequestDTO.setDestinationArrivalDate(destinationArrivalDate);
+        flightSearchRequestDTO.setReturnDepartDate(returnDate);
         flightSearchRequestDTO.setAdults(adults);
         flightSearchRequestDTO.setChildren(children);
         flightSearchRequestDTO.setInfants(infants);
@@ -107,7 +108,7 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
     public List<FlightSearchResponseDTO> getAllReturnTripFlights(FlightSearchRequestDTO flightSearchRequestDTO) {
         List<FlightInfo> returnWayFlightInfoResponses = flightInfoRepository.flightSearch(flightSearchRequestDTO.getDestination(),
                 flightSearchRequestDTO.getOrigin(),
-                flightSearchRequestDTO.getDestinationArrivalDate());
+                flightSearchRequestDTO.getReturnDepartDate());
         log.debug("No of Flights in return Trip : " + returnWayFlightInfoResponses.size());
         List<FlightSearchResponse> returnWayFlightSearchResponses = getFlightSearchResp(returnWayFlightInfoResponses);
         return getFlightSearchResponseDTOs(returnWayFlightSearchResponses);

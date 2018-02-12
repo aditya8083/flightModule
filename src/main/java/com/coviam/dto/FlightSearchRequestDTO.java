@@ -8,7 +8,7 @@ public class FlightSearchRequestDTO implements Serializable{
         private String origin;
         private String destination;
         private String originDepartDate;
-        private String destinationArrivalDate;
+        private String returnDepartDate;
         private int adults;
         private int infants;
         private int children;
@@ -38,12 +38,12 @@ public class FlightSearchRequestDTO implements Serializable{
                 this.originDepartDate = originDepartDate;
         }
 
-        public String getDestinationArrivalDate() {
-                return destinationArrivalDate;
+        public String getReturnDepartDate() {
+                return returnDepartDate;
         }
 
-        public void setDestinationArrivalDate(String destinationArrivalDate) {
-                this.destinationArrivalDate = destinationArrivalDate;
+        public void setReturnDepartDate(String returnDepartDate) {
+                this.returnDepartDate = returnDepartDate;
         }
 
         public int getAdults() {
@@ -90,14 +90,14 @@ public class FlightSearchRequestDTO implements Serializable{
                         Objects.equals(origin, that.origin) &&
                         Objects.equals(destination, that.destination) &&
                         Objects.equals(originDepartDate, that.originDepartDate) &&
-                        Objects.equals(destinationArrivalDate, that.destinationArrivalDate) &&
+                        Objects.equals(returnDepartDate, that.returnDepartDate) &&
                         Objects.equals(flightType, that.flightType);
         }
 
         @Override
         public int hashCode() {
 
-                return Objects.hash(origin, destination, originDepartDate, destinationArrivalDate, adults, infants, children, flightType);
+                return Objects.hash(origin, destination, originDepartDate, returnDepartDate, adults, infants, children, flightType);
         }
 
         @Override
@@ -106,7 +106,7 @@ public class FlightSearchRequestDTO implements Serializable{
                         "origin='" + origin + '\'' +
                         ", destination='" + destination + '\'' +
                         ", originDepartDate='" + originDepartDate + '\'' +
-                        ", destinationArrivalDate='" + destinationArrivalDate + '\'' +
+                        ", returnDepartDate='" + returnDepartDate + '\'' +
                         ", adults=" + adults +
                         ", infants=" + infants +
                         ", children=" + children +

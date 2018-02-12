@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 @RestController
+@CrossOrigin("*")
 @RequestMapping("/flight")
 public class FlightDetailController {
 
