@@ -104,7 +104,7 @@ public class FlightDetailServiceImpl extends  BaseResponseDTO<FlightDetailResult
     }
 
     @Override
-    public FlightDetailRequestDTO mapAllParamsToDTOObject(String flightId, String origin, String destination, String originDepartDate, String destinationArrivalDate, int adults, int infants, int children, String flightType) {
+    public FlightDetailRequestDTO mapAllParamsToDTOObject(String flightId, String origin, String destination, String originDepartDate, String destinationArrivalDate, int adults, int infants, int children, String flightType, boolean doGenerate) {
         FlightDetailRequestDTO flightDetailRequestDTO = new FlightDetailRequestDTO();
         flightDetailRequestDTO.setFlightId(flightId);
         flightDetailRequestDTO.setOrigin(origin);
@@ -115,6 +115,7 @@ public class FlightDetailServiceImpl extends  BaseResponseDTO<FlightDetailResult
         flightDetailRequestDTO.setChild(children);
         flightDetailRequestDTO.setInfant(infants);
         flightDetailRequestDTO.setFlightType(flightType);
+        flightDetailRequestDTO.setDoGenerate(doGenerate);
         return  flightDetailRequestDTO;
     }
 

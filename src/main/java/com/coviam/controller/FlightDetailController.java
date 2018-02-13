@@ -30,9 +30,8 @@ public class FlightDetailController {
     public ResponseEntity<BaseResponseDTO> flightDetail(@RequestParam String flightId, @RequestParam String origin, @RequestParam String destination,
                                                         @RequestParam String originDepartDate, @RequestParam String destinationArrivalDate,
                                                         @RequestParam int adults, @RequestParam int infants, @RequestParam int children,
-                                                        @RequestParam String flightType, HttpServletRequest request) {
-        FlightDetailRequestDTO flightDetailRequestDTO = flightDetailService.mapAllParamsToDTOObject( flightId, origin, destination, originDepartDate, destinationArrivalDate,
-                                                        adults, infants, children, flightType);
+                                                        @RequestParam String flightType,@RequestParam boolean doGenerate,  HttpServletRequest request) {
+        FlightDetailRequestDTO flightDetailRequestDTO = flightDetailService.mapAllParamsToDTOObject( flightId, origin, destination, originDepartDate, destinationArrivalDate, adults, infants, children, flightType, doGenerate);
         log.debug("Getting Flight Detail");
         String interactionId = (String)request.getSession().getAttribute("interactionId");
         BaseResponseDTO flightDetailResult = flightDetailService.getFlightDetail(flightDetailRequestDTO, interactionId);

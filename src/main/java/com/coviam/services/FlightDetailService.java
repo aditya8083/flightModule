@@ -9,6 +9,6 @@ public interface FlightDetailService {
     public BaseResponseDTO getFlightDetail(FlightDetailRequestDTO flightDetailRequestDTO, String interactionId);
 
 
-    FlightDetailRequestDTO mapAllParamsToDTOObject(String flightId, String origin, String destination, String originDepartDate, String destinationArrivalDate, int adults, int infants, int children, String flightType);
+    FlightDetailRequestDTO mapAllParamsToDTOObject(String flightId, String origin, String destination, String originDepartDate, String destinationArrivalDate, int adults, int infants, int children, String flightType, boolean doGenerate);
 }
 
