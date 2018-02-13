@@ -16,6 +16,7 @@ public class FlightSearchResponseDTO implements Serializable{
     private String flightName;
     private String flightNumber;
     private String pricePerAdult;
+    private String totalPrice;
     private boolean isHandBaggageFlight;
     private String baggageWeight;
     private boolean transitVisaRequired;
@@ -116,6 +117,14 @@ public class FlightSearchResponseDTO implements Serializable{
         this.pricePerAdult = pricePerAdult;
     }
 
+    public String getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(String totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
     public boolean isHandBaggageFlight() {
         return isHandBaggageFlight;
     }
@@ -159,13 +168,14 @@ public class FlightSearchResponseDTO implements Serializable{
                 Objects.equals(flightName, that.flightName) &&
                 Objects.equals(flightNumber, that.flightNumber) &&
                 Objects.equals(pricePerAdult, that.pricePerAdult) &&
+                Objects.equals(totalPrice, that.totalPrice) &&
                 Objects.equals(baggageWeight, that.baggageWeight);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(flightId, origin, destination, isRefundable, originDepartDate, originDepartTime, destinationArrivalDate, destinationArrivalTime, flightCode, flightName, flightNumber, pricePerAdult, isHandBaggageFlight, baggageWeight, transitVisaRequired);
+        return Objects.hash(flightId, origin, destination, isRefundable, originDepartDate, originDepartTime, destinationArrivalDate, destinationArrivalTime, flightCode, flightName, flightNumber, pricePerAdult, totalPrice, isHandBaggageFlight, baggageWeight, transitVisaRequired);
     }
 
     @Override
@@ -183,6 +193,7 @@ public class FlightSearchResponseDTO implements Serializable{
                 ", flightName='" + flightName + '\'' +
                 ", flightNumber='" + flightNumber + '\'' +
                 ", pricePerAdult='" + pricePerAdult + '\'' +
+                ", totalPrice='" + totalPrice + '\'' +
                 ", isHandBaggageFlight=" + isHandBaggageFlight +
                 ", baggageWeight='" + baggageWeight + '\'' +
                 ", transitVisaRequired=" + transitVisaRequired +

@@ -15,6 +15,7 @@ public class FlightDetailRequestDTO implements Serializable{
     private int adult;
     private int child;
     private int infant;
+    private boolean doGenerate;
 
     public String getFlightId() {
         return flightId;
@@ -88,26 +89,35 @@ public class FlightDetailRequestDTO implements Serializable{
         this.infant = infant;
     }
 
+    public boolean isDoGenerate() {
+        return doGenerate;
+    }
+
+    public void setDoGenerate(boolean doGenerate) {
+        this.doGenerate = doGenerate;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof FlightDetailRequestDTO)) return false;
         FlightDetailRequestDTO that = (FlightDetailRequestDTO) o;
-        return Objects.equals(flightId, that.flightId) &&
+        return adult == that.adult &&
+                child == that.child &&
+                infant == that.infant &&
+                doGenerate == that.doGenerate &&
+                Objects.equals(flightId, that.flightId) &&
                 Objects.equals(origin, that.origin) &&
                 Objects.equals(destination, that.destination) &&
                 Objects.equals(departDate, that.departDate) &&
                 Objects.equals(returnDate, that.returnDate) &&
-                Objects.equals(flightType, that.flightType) &&
-                Objects.equals(adult, that.adult) &&
-                Objects.equals(child, that.child) &&
-                Objects.equals(infant, that.infant);
+                Objects.equals(flightType, that.flightType);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(flightId, origin, destination, departDate, returnDate, flightType, adult, child, infant);
+        return Objects.hash(flightId, origin, destination, departDate, returnDate, flightType, adult, child, infant, doGenerate);
     }
 
     @Override
@@ -119,9 +129,10 @@ public class FlightDetailRequestDTO implements Serializable{
                 ", departDate='" + departDate + '\'' +
                 ", returnDate='" + returnDate + '\'' +
                 ", flightType='" + flightType + '\'' +
-                ", adult='" + adult +
-                ", child='" + child +
-                ", infant='" + infant +
+                ", adult=" + adult +
+                ", child=" + child +
+                ", infant=" + infant +
+                ", doGenerate=" + doGenerate +
                 '}';
     }
 }

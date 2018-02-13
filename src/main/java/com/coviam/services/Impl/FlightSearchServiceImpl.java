@@ -110,7 +110,7 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
                 flightSearchRequestDTO.getOrigin(),
                 flightSearchRequestDTO.getReturnDepartDate());
         log.debug("No of Flights in return Trip : " + returnWayFlightInfoResponses.size());
-        List<FlightSearchResponse> returnWayFlightSearchResponses = getFlightSearchResp(returnWayFlightInfoResponses);
+        List<FlightSearchResponse> returnWayFlightSearchResponses = getFlightSearchResp(returnWayFlightInfoResponses, flightSearchRequestDTO);
         return getFlightSearchResponseDTOs(returnWayFlightSearchResponses);
     }
 
@@ -119,18 +119,29 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
                 flightSearchRequestDTO.getDestination(),
                 flightSearchRequestDTO.getOriginDepartDate());
         log.debug("No of Flights in OneWay : " + oneWayResponseList.size());
-        List<FlightSearchResponse> oneWayFlightSearchResponses = getFlightSearchResp(oneWayResponseList);
+        List<FlightSearchResponse> oneWayFlightSearchResponses = getFlightSearchResp(oneWayResponseList, flightSearchRequestDTO);
         return getFlightSearchResponseDTOs(oneWayFlightSearchResponses);
     }
 
-    private List<FlightSearchResponse> getFlightSearchResp(List<FlightInfo> returnWayFlightSearchResponse) {
+    private List<FlightSearchResponse> getFlightSearchResp(List<FlightInfo> returnWayFlightSearchResponse, FlightSearchRequestDTO flightSearchRequestDTO) {
         List<FlightSearchResponse> flightSearchResponses = new ArrayList<>();
         for(FlightInfo flightInfo : returnWayFlightSearchResponse){
             FlightSearchResponse flightSearchResponse = new FlightSearchResponse();
             BeanUtils.copyProperties(flightInfo,flightSearchResponse);
+            flightSearchResponse.setTotalPrice(getTotalCost(flightInfo, flightSearchRequestDTO));
             flightSearchResponses.add(flightSearchResponse);
         }
         return flightSearchResponses;
+    }
+
+    private String getTotalCost(FlightInfo flightInfo, FlightSearchRequestDTO flightSearchRequestDTO) {
+         int adultCount =flightSearchRequestDTO.getAdults();
+         int childCount = flightSearchRequestDTO.getChildren();
+         int infantCount = flightSearchRequestDTO.getInfants();
+
+        return String.valueOf((adultCount > 0 ? adultCount * Double.parseDouble(flightInfo.getPricePerAdult()) : 0.0)
+                + (childCount > 0 ? childCount * Double.parseDouble(flightInfo.getPricePerChild()) : 0.0)
+                + (infantCount > 0 ? infantCount * Double.parseDouble(flightInfo.getPricePerInfant()) : 0.0));
     }
 
     private List<FlightSearchResponseDTO> getFlightSearchResponseDTOs(List<FlightSearchResponse> flightSearchResponseList) {

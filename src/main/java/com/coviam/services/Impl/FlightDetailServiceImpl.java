@@ -41,13 +41,13 @@ public class FlightDetailServiceImpl extends  BaseResponseDTO<FlightDetailResult
         FlightDetailResultDTO flightDetailResultDTO = new FlightDetailResultDTO();
         BaseResponseDTO response;
         try {
-            String superPnr = UUIDUtil.getUniqueId();
-            saveFlightSearchCriteria(flightDetailRequestDTO, superPnr);
-
             flightDetailResultDTO.setDetailResult(getFlightItineraryDetails(flightPricingIds));
-            flightDetailResultDTO.setSuperPnr(superPnr);
+            if(flightDetailRequestDTO.isDoGenerate()) {
+                String superPnr = UUIDUtil.getUniqueId();
+                flightDetailResultDTO.setSuperPnr(superPnr);
+                saveFlightSearchCriteria(flightDetailRequestDTO, superPnr);
+            }
             flightDetailResultDTO.setTotalPrice(getTotalPrice(flightDetailResultDTO, flightDetailRequestDTO));
-
             if (flightDetailResultDTO.getDetailResult().size() > 0) {
                 log.debug("Flight Detail response got successfully");
                 response =  new BaseResponseDTO<FlightDetailResultDTO>(flightConstants.SUCCESS_CODE, flightConstants.SUCCESS, interactionId, flightConstants.FLIGHT_DETAIL, flightDetailResultDTO);
