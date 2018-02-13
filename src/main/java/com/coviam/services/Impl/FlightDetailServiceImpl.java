@@ -43,9 +43,8 @@ public class FlightDetailServiceImpl extends  BaseResponseDTO<FlightDetailResult
         try {
             flightDetailResultDTO.setDetailResult(getFlightItineraryDetails(flightPricingIds));
             if(flightDetailRequestDTO.isDoGenerate()) {
-                String superPnr = UUIDUtil.getUniqueId();
+                String superPnr = saveFlightSearchCriteriaAndGetPnr(flightDetailRequestDTO);
                 flightDetailResultDTO.setSuperPnr(superPnr);
-                saveFlightSearchCriteria(flightDetailRequestDTO, superPnr);
             }
             flightDetailResultDTO.setTotalPrice(getTotalPrice(flightDetailResultDTO, flightDetailRequestDTO));
             if (flightDetailResultDTO.getDetailResult().size() > 0) {
@@ -62,10 +61,11 @@ public class FlightDetailServiceImpl extends  BaseResponseDTO<FlightDetailResult
         return response;
     }
 
-    private void saveFlightSearchCriteria(FlightDetailRequestDTO flightDetailRequestDTO, String superPnr) {
+    private String saveFlightSearchCriteriaAndGetPnr(FlightDetailRequestDTO flightDetailRequestDTO) {
         FlightSearchCriteria flightSearchCriteria = new FlightSearchCriteria();
         BeanUtils.copyProperties(flightDetailRequestDTO, flightSearchCriteria);
         flightCriteriaRepository.save(flightSearchCriteria);
+        return flightSearchCriteria.getSuperPnr();
     }
 
     private int getTotalPrice(FlightDetailResultDTO flightDetailResultDTO, FlightDetailRequestDTO flightDetailRequestDTO) {
