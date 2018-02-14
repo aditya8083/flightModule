@@ -14,7 +14,14 @@ import com.coviam.util.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import org.apache.logging.log4j.Logger;
 
@@ -44,6 +51,7 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
     }
 
     public BaseResponseDTO  getAllFlights(FlightSearchRequestDTO flightSearchRequestDTO, String interactionId) {
+        getDateInFormat(flightSearchRequestDTO);
         log.debug(flightSearchRequestDTO.toString());
         if (flightSearchResponsePresentInCache(flightSearchRequestDTO)) {
             return cachingWrapper.readValue(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), flightConstants.FLIGHT_SEARCH_COL);
@@ -75,6 +83,18 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
         }
         log.info(response);
         return response;
+    }
+
+    private void getDateInFormat(FlightSearchRequestDTO flightSearchRequestDTO) {
+        DateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd");
+        DateFormat inputFormat = new SimpleDateFormat("yyyy-M-dd");
+        Date date = null;
+        try {
+            date = inputFormat.parse(flightSearchRequestDTO.getOriginDepartDate());
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        flightSearchRequestDTO.setOriginDepartDate(outputFormat.format(date));
     }
 
     @Override
