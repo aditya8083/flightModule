@@ -1,36 +1,36 @@
 package com.coviam.services.Impl;
 
-import com.coviam.cache.CachingWrapper;
-import com.coviam.dto.BaseResponseDTO;
-import com.coviam.dto.FlightSearchRequestDTO;
-import com.coviam.dto.FlightSearchResponseDTO;
-import com.coviam.dto.FlightSearchResultDTO;
+import com.coviam.dto.*;
 import com.coviam.entity.FlightInfo;
 import com.coviam.entity.FlightSearchResponse;
+import com.coviam.repository.BaseResponseRepository;
 import com.coviam.repository.FlightInfoRepository;
 import com.coviam.repository.FlightSearchRepository;
 import com.coviam.services.FlightSearchService;
 import com.coviam.util.*;
+import org.apache.commons.codec.binary.Base64;
+import org.json.JSONObject;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.apache.logging.log4j.Logger;
+import org.springframework.web.client.RestTemplate;
 
 
 @Service
 public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultDTO> implements FlightSearchService{
 
-    @Autowired
-    CachingWrapper cachingWrapper;
     @Autowired
     UUIDUtil UUIDUtil;
     @Autowired
@@ -43,6 +43,13 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
     FlightInfoRepository flightInfoRepository;
     @Autowired
     Logger log;
+    @Autowired
+    BaseResponseRepository baseResponseRepository;
+    @Autowired
+    RestTemplate restTemplate;
+
+
+
 
 
     @Override
@@ -50,11 +57,14 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
         return flightInfoRepository.save(flightInfo);
     }
 
+    @Cacheable(value="flightSearch")
     public BaseResponseDTO  getAllFlights(FlightSearchRequestDTO flightSearchRequestDTO, String interactionId) {
+
         getDateInFormat(flightSearchRequestDTO);
         log.debug(flightSearchRequestDTO.toString());
+
         if (flightSearchResponsePresentInCache(flightSearchRequestDTO)) {
-            return cachingWrapper.readValue(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), flightConstants.FLIGHT_SEARCH_COL);
+            return baseResponseRepository.get(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString());
         }
         FlightSearchResultDTO flightSearchResultDTO = new FlightSearchResultDTO();
         BaseResponseDTO response;
@@ -113,13 +123,13 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
 
 
     private void saveSearchResponseInCache(FlightSearchRequestDTO flightSearchRequestDTO, BaseResponseDTO response) {
-        cachingWrapper.writeWithoutCompression(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), flightConstants.FLIGHT_SEARCH_COL, response);
+        baseResponseRepository.save(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(),  response);
     }
 
 
     public boolean flightSearchResponsePresentInCache(FlightSearchRequestDTO flightSearchRequestDTO) {
-        FlightSearchResultDTO flightSearchResultDTO = (FlightSearchResultDTO)(cachingWrapper.readValue(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), flightConstants.FLIGHT_SEARCH_COL)).getResponse();
-        if (flightSearchResultDTO != null) {
+        BaseResponseDTO baseResponseDTO = (BaseResponseDTO)(baseResponseRepository.get(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString()));
+        if (baseResponseDTO!= null && baseResponseDTO.getResponse() != null) {
             return true;
         }
         return false;
@@ -133,7 +143,46 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
         List<FlightSearchResponse> returnWayFlightSearchResponses = getFlightSearchResp(returnWayFlightInfoResponses, flightSearchRequestDTO);
         return getFlightSearchResponseDTOs(returnWayFlightSearchResponses);
     }
+/*
+    public List<FlightSearchResponseDTO> getAllOneWayFlights(FlightSearchRequestDTO flightSearchRequestDTO) {
+        List<FlightInfo> oneWayResponseList = getFlightFromVendor(flightSearchRequestDTO);
+        log.debug("No of Flights in OneWay : " + oneWayResponseList.size());
+        List<FlightSearchResponse> oneWayFlightSearchResponses = getFlightSearchResp(oneWayResponseList, flightSearchRequestDTO);
+        return getFlightSearchResponseDTOs(oneWayFlightSearchResponses);
+    }*/
 
+   /* private List<FlightInfo> getFlightFromVendor(FlightSearchRequestDTO flightSearchRequestDTO) {
+
+        https://api.sandbox.amadeus.com/v1.2/flights/low-fare-search?apikey=f4h35P7an10yOp639dGeKAdqUHy9cAVC&
+        // origin=BOS&destination=LON&departure_date=2018-06-25&return_date=2018-08-04&children=1&infants=1&currency=INR
+
+        List<FlightInfo> flightInfoList = new ArrayList<>();
+        FlightSearchVendorRequestDTO flightSearchVendorRequestDTO = mapAllRequestParamsToVendorObj(flightSearchRequestDTO);
+        HttpHeaders headers = new HttpHeaders();
+        String uriString = "https://api.sandbox.amadeus.com/v1.2/flights/low-fare-search";
+        headers.add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+        headers.add("apiKey", flightSearchVendorRequestDTO.getApikey());
+        headers.add("Accept-Encoding", "gzip");
+        headers.add("Accept-Language", "en-IN");
+        HttpEntity<FlightSearchVendorRequestDTO> entity = new HttpEntity<FlightSearchVendorRequestDTO>(flightSearchVendorRequestDTO, headers);
+        JSONObject bookingResponse = restTemplate.exchange(uriString, HttpMethod.GET, entity, JSONObject.class).getBody();
+        log.debug(bookingResponse);
+        return flightInfoList;
+
+    }
+
+    private FlightSearchVendorRequestDTO mapAllRequestParamsToVendorObj(FlightSearchRequestDTO flightSearchRequestDTO) {
+        FlightSearchVendorRequestDTO flightSearchVendorRequestDTO = new FlightSearchVendorRequestDTO();
+        flightSearchVendorRequestDTO.setDeparture_date(flightSearchRequestDTO.getOriginDepartDate());
+        flightSearchVendorRequestDTO.setReturn_date(flightSearchRequestDTO.getReturnDepartDate());
+        flightSearchVendorRequestDTO.setOrigin(flightSearchRequestDTO.getOrigin());
+        flightSearchVendorRequestDTO.setDestination(flightSearchRequestDTO.getDestination());
+        flightSearchVendorRequestDTO.setAdults(flightSearchRequestDTO.getAdults());
+        flightSearchVendorRequestDTO.setChildren(flightSearchRequestDTO.getChildren());
+        flightSearchVendorRequestDTO.setInfants(flightSearchRequestDTO.getInfants());
+        return flightSearchVendorRequestDTO;
+
+    }*/
     public List<FlightSearchResponseDTO> getAllOneWayFlights(FlightSearchRequestDTO flightSearchRequestDTO) {
         List<FlightInfo> oneWayResponseList = flightInfoRepository.flightSearch(flightSearchRequestDTO.getOrigin(),
                 flightSearchRequestDTO.getDestination(),
