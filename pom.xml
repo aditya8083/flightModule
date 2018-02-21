@@ -17,6 +17,19 @@
         <version>1.5.9.RELEASE</version>
     </parent>
 
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <commons-version>3.0</commons-version>
+        <aerospike-client-version>4.1.1</aerospike-client-version>
+        <json-version>20160810</json-version>
+        <gson-version>2.8.0</gson-version>
+        <postgresql-version>9.4-1200-jdbc41</postgresql-version>
+        <swagger-version>2.6.1</swagger-version>
+        <swagger-ui-version>2.6.1</swagger-ui-version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -33,9 +46,21 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>${swagger-version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>${swagger-ui-version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>9.4-1200-jdbc41</version>
+            <version>${postgresql-version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -44,7 +69,7 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.8.0</version>
+            <version>${gson-version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -54,25 +79,23 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20160810</version>
+            <version>${json-version}</version>
         </dependency>
         <dependency>
             <groupId>com.aerospike</groupId>
             <artifactId>aerospike-client</artifactId>
-            <version>4.1.1</version>
+            <version>${aerospike-client-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.0</version>
+            <version>${commons-version}</version>
         </dependency>
     </dependencies>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>1.8</java.version>
-    </properties>
 
     <build>
         <plugins>
