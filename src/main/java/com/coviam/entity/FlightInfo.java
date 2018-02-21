@@ -41,7 +41,6 @@ public class FlightInfo implements Serializable{
     private String baggageWeight;
     private boolean transitVisaRequired;
 
-
     public static String getTableName() {
         return TABLE_NAME;
     }

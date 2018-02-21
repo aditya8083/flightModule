@@ -9,6 +9,7 @@
 /Users/coviam/Downloads/tiket/flightModule/src/main/java/com/coviam/dto/FlightDetailResponseDTO.java
 /Users/coviam/Downloads/tiket/flightModule/src/main/java/com/coviam/entity/FlightSearchCriteria.java
 /Users/coviam/Downloads/tiket/flightModule/src/main/java/com/coviam/util/FlightConstants.java
+/Users/coviam/Downloads/tiket/flightModule/src/main/java/com/coviam/util/RandomGenerator.java
 /Users/coviam/Downloads/tiket/flightModule/src/main/java/com/coviam/controller/FlightSearchController.java
 /Users/coviam/Downloads/tiket/flightModule/src/main/java/com/coviam/dto/FlightItineraryDetailsDTO.java
 /Users/coviam/Downloads/tiket/flightModule/src/main/java/com/coviam/dto/FlightDetailResultDTO.java
@@ -33,4 +34,5 @@
 /Users/coviam/Downloads/tiket/flightModule/src/main/java/com/coviam/services/FlightSearchService.java
 /Users/coviam/Downloads/tiket/flightModule/src/main/java/com/coviam/services/Impl/FlightItineraryServiceImpl.java
 /Users/coviam/Downloads/tiket/flightModule/src/main/java/com/coviam/controller/Interceptor/SessionInterceptor.java
+/Users/coviam/Downloads/tiket/flightModule/src/main/java/com/coviam/util/RandomDateGenerator.java
 /Users/coviam/Downloads/tiket/flightModule/src/main/java/com/coviam/dto/FlightSearchRequestDTO.java

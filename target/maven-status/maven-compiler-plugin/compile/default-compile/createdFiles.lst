@@ -3,6 +3,8 @@ com/coviam/entity/FlightDetailResponse.class
 com/coviam/entity/FlightSearchResponse.class
 com/coviam/dto/FlightSearchResponseDTO.class
 com/coviam/services/Impl/FlightDetailServiceImpl.class
+com/coviam/util/RandomDateGenerator.class
+com/coviam/util/RandomGenerator.class
 com/coviam/services/Impl/FlightSearchServiceImpl.class
 com/coviam/util/FlightConstants.class
 com/coviam/controller/FlightSearchController.class
