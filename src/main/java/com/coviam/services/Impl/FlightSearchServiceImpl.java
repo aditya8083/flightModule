@@ -18,8 +18,6 @@ import org.springframework.stereotype.Service;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -52,9 +50,11 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
 
     public BaseResponseDTO  getAllFlights(FlightSearchRequestDTO flightSearchRequestDTO, String interactionId) {
         getDateInFormat(flightSearchRequestDTO);
+        String split[] = flightSearchRequestDTO.getOriginDepartDate().split("-");
+        String cacheColName = flightSearchRequestDTO.getOrigin() + flightSearchRequestDTO.getDestination() + split[0] +split[1] + split[2];
         log.debug(flightSearchRequestDTO.toString());
-        if (flightSearchResponsePresentInCache(flightSearchRequestDTO)) {
-            return cachingWrapper.readValue(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), flightConstants.FLIGHT_SEARCH_COL);
+        if (flightSearchResponsePresentInCache(flightSearchRequestDTO, cacheColName)) {
+            return cachingWrapper.readValue(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), cacheColName);
         }
         FlightSearchResultDTO flightSearchResultDTO = new FlightSearchResultDTO();
         BaseResponseDTO response;
@@ -68,11 +68,11 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
             if (flightSearchRequestDTO.getFlightType().equalsIgnoreCase("ONEWAY") && flightSearchResultDTO.getFlightResult().get(0).size() > 0){
                 log.debug("One Way flight Search response got successfully");
                 response = new BaseResponseDTO<FlightSearchResultDTO>(flightConstants.SUCCESS_CODE, flightConstants.SUCCESS, interactionId, flightConstants.FLIGHT_SEARCH, flightSearchResultDTO);
-                saveSearchResponseInCache(flightSearchRequestDTO, response);
+                saveSearchResponseInCache(flightSearchRequestDTO, response, cacheColName);
             }else if(flightSearchRequestDTO.getFlightType().equalsIgnoreCase("ROUNDTRIP") && flightSearchResultDTO.getFlightResult().get(1).size() > 0 && flightSearchResultDTO.getFlightResult().get(0).size()  > 0) {
                 log.debug("Round Trip flight Search response got successfully");
                 response = new BaseResponseDTO<FlightSearchResultDTO>(flightConstants.SUCCESS_CODE, flightConstants.SUCCESS,interactionId, flightConstants.FLIGHT_SEARCH, flightSearchResultDTO);
-                saveSearchResponseInCache(flightSearchRequestDTO, response);
+                saveSearchResponseInCache(flightSearchRequestDTO, response, cacheColName);
             } else {
                 response = new BaseResponseDTO<FlightSearchResultDTO>(flightConstants.FAILURE_CODE, flightConstants.NO_FLIGHT_FOUND_MSG, interactionId, flightConstants.FLIGHT_SEARCH, flightSearchResultDTO);
                 log.debug("Error in Getting Flight Search results");
@@ -112,13 +112,13 @@ public class FlightSearchServiceImpl extends BaseResponseDTO<FlightSearchResultD
     }
 
 
-    private void saveSearchResponseInCache(FlightSearchRequestDTO flightSearchRequestDTO, BaseResponseDTO response) {
-        cachingWrapper.writeWithoutCompression(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), flightConstants.FLIGHT_SEARCH_COL, response);
+    private void saveSearchResponseInCache(FlightSearchRequestDTO flightSearchRequestDTO, BaseResponseDTO response, String cacheColName) {
+        cachingWrapper.writeWithoutCompression(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), cacheColName, response);
     }
 
 
-    public boolean flightSearchResponsePresentInCache(FlightSearchRequestDTO flightSearchRequestDTO) {
-        FlightSearchResultDTO flightSearchResultDTO = (FlightSearchResultDTO)(cachingWrapper.readValue(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), flightConstants.FLIGHT_SEARCH_COL)).getResponse();
+    public boolean flightSearchResponsePresentInCache(FlightSearchRequestDTO flightSearchRequestDTO, String cacheColName) {
+        FlightSearchResultDTO flightSearchResultDTO = (FlightSearchResultDTO)(cachingWrapper.readValue(flightConstants.FLIGHT_CACHE_SET, flightSearchRequestDTO.toString(), cacheColName)).getResponse();
         if (flightSearchResultDTO != null) {
             return true;
         }
