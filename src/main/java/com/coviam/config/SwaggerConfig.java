@@ -14,7 +14,7 @@ public class SwaggerConfig {
     @Bean
     public Docket flightApi() {
         return new Docket(DocumentationType.SWAGGER_2)
-                .select()                 .apis(RequestHandlerSelectors.any())
+                .select()                 .apis(RequestHandlerSelectors.basePackage("com.coviam.controller"))
                 .paths(PathSelectors.any())
                 .build();
     }
